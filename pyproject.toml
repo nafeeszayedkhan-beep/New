@@ -1,0 +1,13 @@
+[build-system]
+requires = ["hatchling>=1.26.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "acme-sync"
+version = "0.0.1"
+description = "Demo package for GAR publishing"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{name="Dev Team", email="dev@example.com"}]
+license = {text = "MIT"}
+"
