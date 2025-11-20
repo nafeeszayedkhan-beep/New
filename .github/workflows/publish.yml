@@ -30,15 +30,35 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
-          # Use the FULL provider resource (set this as a GitHub Variable)
           workload_identity_provider: ${{ vars.WIF_PROVIDER_FULL }}
-          # Service account email (set this as a GitHub Variable)
           service_account: ${{ vars.GCP_SA_EMAIL }}
 
       - name: Install build & auth tooling
         run: |
           python -m pip install --upgrade pip
           pip install build twine keyring keyrings.google-artifactregistry-auth
+
+      - name: DEBUG: show working dir and pyproject
+        run: |
+          echo "PWD: $(pwd)"
+          echo "LS:"
+          ls -la
+          echo
+          echo "File info:"
+          file -i pyproject.toml || true
+          echo
+          echo "=== hex (first 200 bytes) ==="
+          python - <<'PY'
+with open("pyproject.toml", "rb") as f:
+    b = f.read(200)
+print(" ".join(f"{x:02x}" for x in b))
+PY
+          echo
+          echo "=== cat -vte ==="
+          cat -vte pyproject.toml || true
+          echo
+          echo "=== nl -ba (numbered) ==="
+          nl -ba pyproject.toml | sed -n '1,200p' || true
 
       - name: Build package
         run: |
@@ -48,7 +68,7 @@ jobs:
         env:
           TWINE_REPOSITORY_URL: "https://${{ env.GAR_REGION }}-python.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/"
         run: |
-          # keyring plugin will use the workflow's short-lived ADC (from the auth step)
+          python -m pip install --upgrade twine
           python -m twine upload --non-interactive --repository-url "${TWINE_REPOSITORY_URL}" dist/*
 
       - name: Sanity install from GAR (optional)
